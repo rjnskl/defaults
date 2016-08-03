@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+
+<link rel="stylesheet" type="text/css" href="http://www.bloomberg.com/graphics/assets/css/fonts.css"/>
+
+<style>
+h4 {
+  position: absolute !important;
+  margin: 25px 0 0 10px;
+}
+
+div.tooltip {
+  width: auto;
+  height: auto;
+  position: fixed;
+  z-index: 10;
+  -webkit-transition: all 0.05s ease-in-out;
+  -moz-transition: all 0.05s ease-in-out;
+  -o-transition: all 0.05s ease-in-out;
+  -ms-transition: all 0.05s ease-in-out;
+  -webkit-transition: all 0.05s ease-in-out;
+  -moz-transition: all 0.05s ease-in-out;
+  -o-transition: all 0.05s ease-in-out;
+  -ms-transition: all 0.05s ease-in-out;
+  transition: all 0.05s ease-in-out;
+  top: -1000px;
+  position: absolute;
+  padding: 10px;
+  background: rgba(255,255,255,1);
+  border: 1px solid #d3d3d3;
+  pointer-events: none;
+}
+.tooltip-hidden {
+  opacity: 0;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+  filter: alpha(opacity=0);
+}
+.tooltipped {
+  stroke-width: 4px;
+}
+.tooltip:after, 
+.tooltip:before {
+  box-sizing:border-box;
+  -webkit-font-smoothing: antialiased;
+  top: 100%;
+  left: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+}
+.tooltip:before {
+  border-color: rgba(102, 102, 102, 0);
+  border-top-color: lightgray;
+  border-width: 13px;
+  margin-left: -13px;
+}
+.tooltip:after {
+  border-color: rgba(255, 255, 255, 0);
+  border-top-color: #fff;
+  border-width: 12px;
+  margin-left: -12px;
+}
+
+.tooltip-hidden {
+  opacity: 0;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+  filter: alpha(opacity=0);
+}
+.tooltipped {
+  stroke-width: 4px;
+}
+
+.bar {
+  fill: #272727;
+}
+
+.bar:hover {
+  fill: #000;
+}
+
+.axis {
+  font-size: 12px;
+  font-family: 'BWHaasText', 'HaasText', Helvetica, sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #ccc;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+.y.axis path {
+  display: none;
+}
+
+.ttYear {
+  font-family: 'BWHaasText', 'HaasText', Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+}
+.ttAmount {
+  font-size: 21px;
+}
+
+</style>
+<body>
+  <h4>Bar chart with tooltip, fixed to top of bars</h4>
+  <div class='chart'></div>
+  <div class='tooltip'></div>
+
+<script src="http://www.bloomberg.com/graphics/assets/js/vendor/lodash.underscore.min.js?"></script>
+<script src='https://d3js.org/d3.v4.js'></script>
+<script src='https://d3js.org/d3-axis.v1.min.js'></script>
+<script src='../assets/d3-starterkit.js'></script>
+
+<!-- underscore tooltip template -->
+<script type='text/template' id='ttTemplate'>
+  <div id='tt'>
+  <div class='ttYear'><%=d.year%></div>
+  <div class='ttAmount'><%=d.amount%></div>
+  </div>
+</script>
+
+
+<script>
+var tooltip = d3.select('.tooltip')
+var template = _.template(d3.select('#ttTemplate').html())
+
+// var tooltip = d3.select('.tooltip')
+//     .attr('class', 'tooltip')
+//     .html(function(d) {
+//       return 'hello';
+//     });
+
+var margin = {top: 20, right: 100, bottom: 30, left: 0},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.scaleBand()
+    .range([0, width])
+    .round(true)
+    .padding([.1]);
+
+var y = d3.scaleLinear()
+    .domain([0, 1000000])
+    .range([height, 0]);
+
+var xAxis = d3.axisBottom(x)
+    .tickSizeInner(15);
+
+var yAxis = d3.axisRight(y)
+    .ticks(10, 's')
+    .tickSizeInner(15);
+
+var svg = d3.select('body').append('svg')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', height + margin.top + margin.bottom)
+  .append('g')
+    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+d3.tsv('data.tsv', type, function(error, data) {
+  if (error) throw error;
+
+  x.domain(data.map(function(d) { return d.year; }));
+  y.domain(d3.extent(data, function(d) { return d.amount; }));
+
+
+  // var tooltip = d3.select('.tooltip')
+  //   .attr('class', 'tooltip')
+  //   .html(function(d) {
+  //     return 'hello';
+  //   });
+
+  svg.append('g')
+      .attr('class', 'x axis')
+      .attr('transform', 'translate(0,' + height + ')')
+      .call(xAxis);
+
+  svg.append('g')
+      .attr('class', 'y axis')
+      .attr('transform', 'translate(' + width + ' ,0)')
+      .call(yAxis);
+
+  svg.selectAll('.bars')
+      .data(data)
+    .enter().append('rect')
+      .attr('class', 'bar')
+      .attr('x', function(d) { return x(d.year); })
+      .attr('width', x.bandwidth())
+      .attr('y', function(d) { return y(d.amount); })
+      .attr('height', function(d) { return height - y(d.amount); })
+      .call(d3.attachTooltip)
+      .on('mousemove',function(d) {
+        tooltip.html('')
+        tooltip.style('opacity',.9).html(template({d:d}))
+        var el = d3.select(this)
+        d3.selectAll('.bar').style('opacity',1)
+        el.style('opacity',1)
+        console.log(this)
+        tooltip.style('top', el.attr('y')-50+'px')
+        tooltip.style('left', el.attr('x')-30+'px')
+      })
+      .on('mouseout',function() {
+        d3.selectAll('.bar').style('opacity',1)
+        tooltip.style('opacity',0)
+      })
+
+
+});
+
+function type(d) {
+  d.amount = +d.amount;
+  d.year = +d.year;
+  return d;
+}
+
+</script>
