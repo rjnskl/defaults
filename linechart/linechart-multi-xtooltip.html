@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<link rel='stylesheet' type='text/css' href='http://www.bloomberg.com/graphics/assets/css/fonts.css'/>
+
+<style>
+body {
+  font-family: 'BWHaasText-55Regular', 'HaasText', Helvetica, sans-serif;
+}
+
+h4 {
+  position: absolute !important;
+  margin: 25px 0 0 10px;
+}
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.focus {
+  fill: none;
+  stroke: #272727;
+  stroke-width: 2px;
+}
+
+div.tooltip {
+  width: auto;
+  height: auto;
+  position: fixed;
+  z-index: 10;
+  -webkit-transition: all 0.05s ease-in-out;
+  -moz-transition: all 0.05s ease-in-out;
+  -o-transition: all 0.05s ease-in-out;
+  -ms-transition: all 0.05s ease-in-out;
+  -webkit-transition: all 0.05s ease-in-out;
+  -moz-transition: all 0.05s ease-in-out;
+  -o-transition: all 0.05s ease-in-out;
+  -ms-transition: all 0.05s ease-in-out;
+  transition: all 0.05s ease-in-out;
+  top: -1000px;
+  position: absolute;
+  padding: 10px;
+  background: rgba(255,255,255,1);
+  border: 1px solid #d3d3d3;
+  pointer-events: none;
+}
+.tooltip-hidden {
+  opacity: 0;
+  -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=0)';
+  filter: alpha(opacity=0);
+}
+.tooltipped {
+  stroke-width: 4px;
+}
+.tooltip:after, 
+.tooltip:before {
+  box-sizing:border-box;
+  -webkit-font-smoothing: antialiased;
+  top: 100%;
+  left: 50%;
+  border: solid transparent;
+  content: ' ';
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+}
+.tooltip:before {
+  border-color: rgba(102, 102, 102, 0);
+  border-top-color: lightgray;
+  border-width: 13px;
+  margin-left: -13px;
+}
+.tooltip:after {
+  border-color: rgba(255, 255, 255, 0);
+  border-top-color: #fff;
+  border-width: 12px;
+  margin-left: -12px;
+}
+
+.tooltip-hidden {
+  opacity: 0;
+  -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=0)';
+  filter: alpha(opacity=0);
+}
+.tooltipped {
+  stroke-width: 4px;
+}
+
+.axis {
+  font-size: 12px;
+  font-family: 'BWHaasText-55Regular', 'HaasText', Helvetica, sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #ccc;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+/*  display: none;*/
+}
+.y.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: #272727;
+  stroke-width: 2px;
+}
+
+.ttTime {
+  font-family: 'BWHaasText-55Regular', 'HaasText', Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+}
+.ttAmount {
+  font-size: 21px;
+}
+
+</style>
+<body>
+  <h4>Line Chart with tooltips</h4>
+  <div class='chart'></div>
+  <div class='tooltip'></div>
+
+<script src='http://www.bloomberg.com/graphics/assets/js/vendor/lodash.underscore.min.js?'></script>
+<script src='https://d3js.org/d3.v4.js'></script>
+<script src='../assets/d3-starterkit.js'></script>
+
+<!-- underscore tooltip template -->
+<script type='text/template' id='ttTemplate'>
+  <div id='tt'>
+  <div class='ttYear'><%=niceTime(d.date)%></div>
+  <div class='ttAmount'><%=d.seas_nice%></div>
+  </div>
+</script>
+
+<script>
+
+var x = d3.scaleTime().range([0, width]),
+    y = d3.scaleLinear().range([height, 0]),
+    z = d3.scaleOrdinal(d3.schemeCategory10);
+
+var tooltip = d3.select('.tooltip')
+var template = _.template(d3.select('#ttTemplate').html())
+
+var margin = {top: 50, right: 50, bottom: 30, left: 20},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var parseTime = d3.timeParse('%Y-%m-%d'),
+    niceTime = d3.timeFormat('%b %Y'),
+    formatValue = d3.format('.2s');
+
+// var x = d3.scaleTime()
+//     .range([0, width]);
+
+// var y = d3.scaleLinear()
+//     .range([height, 0]);
+
+var xAxis = d3.axisBottom(x)
+    .tickSizeInner(15);
+
+var yAxis = d3.axisRight(y)
+    .ticks(5, 's')
+    .tickSizeInner(15);
+
+var line = d3.line()
+    .curve(d3.curveBasis)
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.checks); });
+
+// var line = d3.line()
+//     .x(function(d) { return x(d.date); })
+//     .y(function(d) { return y(d.seas_checks); });
+
+var svg = d3.select("svg"),
+    margin = {top: 20, right: 80, bottom: 30, left: 50},
+    width = svg.attr("width") - margin.left - margin.right,
+    height = svg.attr("height") - margin.top - margin.bottom,
+    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// var lineSvg = svg.append('g');
+
+// var focus = svg.append('g')                                
+//     .style('display', 'none');
+
+d3.tsv('data.tsv', function(error, data) {
+  if (error) throw error;
+
+  var checks = data.columns.slice(1).map(function(id) {
+    return {
+      id: id,
+      values: data.map(function(d) {
+        return {date: d.date, amount: d[id]};
+      })
+    }
+  })
+
+  console.log(checks);
+
+  // data.forEach(function(d) {
+  //   d.date = parseTime(d.date);
+  //   d.checks = +d.checks;
+  //   d.seas_checks = +d.seas_checks;
+  //   d.seas_nice = formatValue(d.seas_checks);
+  // });
+
+  x.domain(d3.extent(data, function(d) { return d.date; }));
+  y.domain([
+      d3.min(checks, function(c) { return d3.min(c.values, function(d) { return d.amount; }); }),
+      d3.max(checks, function(c) { return d3.max(c.values, function(d) { return d.amount; }); })
+    ]);
+
+  z.domain(checks.map(function(c) { return c.id; }));
+
+  // lineSvg.append('path')
+  //     .attr('class', 'line')
+  //     .attr('d', line(data))
+
+  svg.append('g')
+      .attr('class', 'x axis')
+      .attr('transform', 'translate(0,' + height + ')')
+      .call(xAxis);
+
+  svg.append('g')
+      .attr('class', 'y axis')
+      .attr('transform', 'translate(' + width + ' ,0)')
+      .call(yAxis)
+
+  var checks = g.selectAll('.checks')
+    .data(checks)
+    .enter().append('g')
+      .attr('class', 'city');
+
+  checks.append('path')
+    .attr('class', 'line')
+    .attr('d', function(d) { return line(d.values); })
+    .style('stroke', function(d) { return z(d.id); });
+
+  // svg.append('path')
+  //     .datum(data)
+  //     .attr('class', 'line')
+  //     .attr('d', line)
+
+  // focus.append('circle')
+  //     .attr('class', 'y focus')
+  //     .attr('r', 4)
+
+  // svg.append('rect')
+  //     .attr('class', 'overlay')
+  //     .attr('width', width)
+  //     .attr('height', height)
+  //     .call(d3.attachTooltip)
+  //     .on('mouseover', function(d) {
+  //       // tooltip.style('opacity',.9).html(template({d:d}))
+  //       // var el = d3.select(this)
+  //       // d3.selectAll('.bar').style('opacity',1)
+  //       // el.style('opacity',1)
+  //       focus.style('display', null); 
+  //       })
+  //     .on('mouseout', function(d) { 
+  //       tooltip.style('opacity',0);
+  //       focus.style('display', 'none'); 
+  //       })
+  //     .on('mousemove', mousemove);
+  
+  // function mousemove(d) {
+  //   var x0 = x.invert(d3.mouse(this)[0]),
+  //       i = bisectDate(data, x0, 1),
+  //       d0 = data[i - 1],
+  //       d1 = data[i],
+  //       d = x0 - d0.date > d1.date - x0 ? d1 : d0;
+
+  //   tooltip.style('opacity',.9).html(template({d:d}))
+  //       .style('top', y(d.seas_checks)-30+'px')
+  //       .style('left', x(d.date));
+
+  //   focus.select('circle.y')
+  //       .attr('transform',
+  //             'translate(' + x(d.date) + ',' +
+  //                            y(d.seas_checks) + ')');
+  // }
+
+});
+
+function type(d, _, columns) {
+  d.date = parseTime(d.date);
+  for (var i = 1, n = columns.length, c; i < n; ++i) d[c = columns[i]] = +d[c];
+  return d;
+}
+
+</script>
+</body>
