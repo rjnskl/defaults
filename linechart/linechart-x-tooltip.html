@@ -152,18 +152,16 @@ var margin = {top: 50, right: 50, bottom: 30, left: 20},
 
 var parseTime = d3.timeParse('%Y-%m-%d'),
     niceTime = d3.timeFormat('%b %Y'),
-    bisectDate = d3.bisector(function(d) { return d.date; }).left,
-    formatValue = d3.format('.2s'),
-    formatCurrency = function(d) { return '$' + formatValue(d); };
+    formatValue = d3.format('.2s');
 
-var x = d3.scaleTime()
-    .range([0, width]);
-
-var y = d3.scaleLinear()
-    .range([height, 0]);
+var x = d3.scaleTime().range([0, width]);
+    y = d3.scaleLinear().range([height, 0]);
+    z = d3.scaleOrdinal(d3.schemeCategory10);
 
 var xAxis = d3.axisBottom(x)
     .tickSizeInner(15);
+
+
 
 var yAxis = d3.axisRight(y)
     .ticks(5, 's')
