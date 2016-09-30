@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font-family: 'HaasText', Helvetica, sans-serif;
+  font-size: 10px;
+  position: relative;
+}
+
+div.tooltip {
+  width: auto;
+  height: auto;
+  position: fixed;
+  z-index: 10;
+  -webkit-transition: all 0.05s ease-in-out;
+  -moz-transition: all 0.05s ease-in-out;
+  -o-transition: all 0.05s ease-in-out;
+  -ms-transition: all 0.05s ease-in-out;
+  -webkit-transition: all 0.05s ease-in-out;
+  -moz-transition: all 0.05s ease-in-out;
+  -o-transition: all 0.05s ease-in-out;
+  -ms-transition: all 0.05s ease-in-out;
+  transition: all 0.05s ease-in-out;
+  top: -1000px;
+  position: absolute;
+  padding: 10px;
+  background: rgba(255,255,255,1);
+  border: 1px solid #d3d3d3;
+  pointer-events: none;
+}
+.tooltip-hidden {
+  opacity: 0;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+  filter: alpha(opacity=0);
+}
+.tooltipped {
+  stroke-width: 4px;
+}
+.tooltip:after, 
+.tooltip:before {
+  box-sizing:border-box;
+  -webkit-font-smoothing: antialiased;
+  top: 100%;
+  left: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+}
+.tooltip:before {
+  border-color: rgba(102, 102, 102, 0);
+  border-top-color: lightgray;
+  border-width: 13px;
+  margin-left: -13px;
+}
+.tooltip:after {
+  border-color: rgba(255, 255, 255, 0);
+  border-top-color: #fff;
+  border-width: 12px;
+  margin-left: -12px;
+}
+
+.tooltip-hidden {
+  opacity: 0;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+  filter: alpha(opacity=0);
+}
+.tooltipped {
+  stroke-width: 4px;
+}
+
+.node {
+  box-sizing: border-box;
+  line-height: 1em;
+  overflow: hidden;
+  position: absolute;
+  white-space: pre;
+  background: #ddd;
+}
+
+.node-label,
+.node-value {
+  margin: 4px;
+}
+
+.node-value {
+  margin-top: -2px;
+}
+
+.node-value {
+  font-weight: bold;
+}
+
+</style>
+<body>
+<script src="//d3js.org/d3.v4.0.0-alpha.49.min.js"></script>
+<script>
+
+var width = 960,
+    height = 5060;
+
+// var formatCat = d3.format() ;
+
+String.prototype.toProperCase = function () {
+    return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+};
+
+var format = d3.formatLocale({
+  decimal: ".",
+  thousands: ",",
+  grouping: [3],
+  currency: ["$", ""]
+}).format("$,d");
+
+var nest = d3.nest()
+    .key(function(d) { return d.disb_desc; })
+    .key(function(d) { return d.recipient_nm; })
+    .rollup(function(d) { return d3.sum(d, function(d) { return d.disb_amt; }); });
+
+var treemap = d3.treemap()
+    .size([width, height])
+    .padding(1)
+    .round(true);
+
+d3.csv("trump-spent-ctdjuly2016.csv", type, function(error, data) {
+  if (error) throw error;
+
+  var root = d3.hierarchy({values: nest.entries(data)}, function(d) { return d.values; })
+      .sum(function(d) { return d.value; })
+      .sort(function(a, b) { return b.value - a.value; });
+
+  treemap(root);
+
+  var node = d3.select("body")
+    .selectAll(".node")
+    .data(root.leaves())
+    .enter().append("div")
+      .attr("class", "node")
+      .style("left", function(d) { return d.x0 + "px"; })
+      .style("top", function(d) { return d.y0 + "px"; })
+      .style("width", function(d) { return d.x1 - d.x0 + "px"; })
+      .style("height", function(d) { return d.y1 - d.y0 + "px"; });
+
+  node.append("div")
+      .attr("class", "node-label")
+      .text(function(d) { return d.parent.data.key + "\n" + d.data.key; });
+
+  node.append("div")
+      .attr("class", "node-value")
+      .text(function(d) { return format(d.value); });
+});
+
+function type(d) {
+  d.disb_amt = +d.disb_amt;
+  d.recipient_nm = d.recipient_nm.toProperCase();
+  return d;
+}
+
+</script>

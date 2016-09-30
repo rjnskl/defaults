@@ -187,16 +187,16 @@ d3.tsv('data.tsv', type, function(error, data) {
       .attr('class', 'line')
       .attr('d', line)
       // .attr("transform", "translate(" + x(d.date) + "," + y(d.seas_checks) + ")")
-      .call(d3.attachTooltip)
       .on('mouseover',function(d) {
         tooltip.style('opacity',.9).html(template({d:d}))
         var el = d3.select(this)
-        d3.selectAll('.path').style('opacity',1)
+        d3.selectAll('.line').style('opacity',1)
         el.style('opacity',1)
-        console.log(this)
+        console.log(tooltip)
       })
+      .call(d3.attachTooltip)
       .on('mouseout',function() {
-        d3.selectAll('.bar').style('opacity',1)
+        d3.selectAll('.line').style('opacity',.5)
         tooltip.style('opacity',0)
       })
 });
