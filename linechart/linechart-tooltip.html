@@ -187,12 +187,12 @@ d3.tsv('data.tsv', type, function(error, data) {
       .attr('class', 'line')
       .attr('d', line)
       // .attr("transform", "translate(" + x(d.date) + "," + y(d.seas_checks) + ")")
-      .on('mouseover',function(d) {
+      .on('mousemove',function(d) {
         tooltip.style('opacity',.9).html(template({d:d}))
         var el = d3.select(this)
         d3.selectAll('.line').style('opacity',1)
         el.style('opacity',1)
-        console.log(tooltip)
+        console.log(this)
       })
       .call(d3.attachTooltip)
       .on('mouseout',function() {
