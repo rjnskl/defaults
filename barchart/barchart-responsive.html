@@ -9,17 +9,13 @@
 		font-family: 'BWHaasText-55Roman', 'HaasText', Helvetica, sans-serif;
 	}
 
-	h4 {
-
+	.bar {
+		fill: #272727;
 	}
 
 	#chart {
-		width: 80%;
-		height: 40%;
-	}
-
-	.bar {
-		fill: #272727;
+		width: 960px;
+		height: 500px;
 	}
 
 	.bar:hover {
@@ -45,12 +41,13 @@
 		display: none;
 	}
 
-/*	@media (max-width: 960px) {
+	@media (max-width: 960px) {
 	  #chart {
-	  	width: 80%;
-	  	height: 300px;
-	  }*/
+	  	width: 90%;
+	  	height: 500px;
+	  }
 	}
+
 	</style>
 </head>
 
@@ -60,7 +57,7 @@
 
 
 	<script src='https://d3js.org/d3.v4.js'></script>
-	<script src='https://d3js.org/d3-axis.v1.min.js'></script>
+	<!-- <script src='https://d3js.org/d3-axis.v1.min.js'></script> -->
 	<!-- <script src='../assets/d3-jetpack.js'></script> -->
 	<script>
 
@@ -70,7 +67,7 @@
 
 			var margin = {top: 20, right: 100, bottom: 100, left: 5},
 					width = container.clientWidth - margin.left - margin.right,
-					height = container.clientWidth - margin.top - margin.bottom;
+					height = container.clientHeight - margin.top - margin.bottom;
 
 			var x = d3.scaleBand()
 					.range([0, width])
@@ -105,12 +102,12 @@
 			function createAxis() {
 
 				var xAxis = d3.axisBottom(x)
-						.tickSizeInner(15)    
-						.tickValues([1986,2013]);
+					.tickSizeInner(15)
+					.tickValues([1986,2013]);
 
 				var yAxis = d3.axisRight(y)
-						.ticks(10, 's')
-						.tickSizeInner(15);
+					.ticks(10, 's')
+					.tickSizeInner(15);
 
 				svg.append('g')
 					.attr('class', 'x axis')
@@ -125,8 +122,8 @@
 					.call(xAxis)
 
 				svg.select('.y.axis')
-					.call(yAxis)
 					.attr('transform', 'translate(' + width + ' ,0)')
+					.call(yAxis)
 
 				// doing it this way will draw axis on top of each other on resize:
 
@@ -156,6 +153,7 @@
 						// .data(data);
 
 				//fancy bars with animation in???
+				// it also draws the bars in a different way than I have been doing
 				bars.enter().append("rect")
 				    .attr("class", "bar")
 				    .attr("y", y(0))
@@ -222,9 +220,6 @@
 			  .attr("height", function(d) { return height - y(d.amount); });
 
 			createAxis();
-
-			console.log(height);
-
 			}
 		};
 
