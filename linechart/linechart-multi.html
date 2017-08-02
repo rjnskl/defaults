@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<link rel='stylesheet' type='text/css' href='http://www.bloomberg.com/graphics/assets/css/fonts.css'/>
+
+<!-- FIX ALL THIS STYLUS -->
+<style>
+  // chart styles
+  .big-graph {
+    width: 1180px;
+    margin: 50px auto;
+  }
+  #employment {
+    width 1180px
+    margin 0 auto
+  }
+  .axis
+    font-size 14px
+    font-family 'BWHaasText', 'Helvetica', sans-serif
+
+  .axis path,
+  .axis line
+    fill none
+    stroke #ccc
+    shape-rendering crispEdges
+
+  .x.axis path
+  /*  display none*/
+  .y.axis path
+    display none
+
+  .line
+    fill none
+    stroke #ccc
+    opacity .2
+    stroke-width 5px
+  
+  .overlay
+    fill none
+    pointer-events all
+
+  .focus
+    fill none
+    stroke #272727
+    stroke-width 2px
+  .industry--hover
+    opacity 1
+    stroke #000
+  
+  // tooltip style
+  div.tooltip
+    width auto
+    height auto
+    position fixed
+    z-index 10
+    -webkit-transition all 0.05s ease-in-out
+    -moz-transition all 0.05s ease-in-out
+    -o-transition all 0.05s ease-in-out
+    -ms-transition all 0.05s ease-in-out
+    -webkit-transition all 0.05s ease-in-out
+    -moz-transition all 0.05s ease-in-out
+    -o-transition all 0.05s ease-in-out
+    -ms-transition all 0.05s ease-in-out
+    transition all 0.05s ease-in-out
+    top -1000px
+    position absolute
+    padding 10px
+    background rgba(255,255,255,1)
+    border 1px solid #d3d3d3
+    pointer-events none
+  .tooltip-hidden
+    opacity 0
+  .tooltipped
+    stroke #000
+  .tooltipafter, 
+  .tooltipbefore
+    box-sizingborder-box
+    -webkit-font-smoothing antialiased
+    top 100%
+    left 50%
+    border solid transparent
+    content ' '
+    height 0
+    width 0
+    position absolute
+    pointer-events none
+    z-index 100
+  .tooltipbefore
+    border-color rgba(102, 102, 102, 0)
+    border-top-color lightgray
+    border-width 13px
+    margin-left -13px
+  .tooltipafter
+    border-color rgba(255, 255, 255, 0)
+    border-top-color #fff
+    border-width 12px
+    margin-left -12px
+  .ttIndustry,
+  .ttTime
+    font-family 'BWHaasText', 'Helvetica', sans-serif
+    font-size 14px
+    font-weight bold
+  .ttAmount
+    font-size 21px
+  .hovered
+    stroke #000  
+    opacity 1
+</style>
+
+<div class="dvz-content">
+	<div class='tooltip'></div>
+
+	<section class='big-graph'>
+	  <h3>Labor Productivity, 2010 Index</h3>
+	  <div id="employment"></div>
+	</section>
+
+	<section class='big-graph'>
+	  <h3>Output per Employee</h3>
+	  <div id="outputPerEmp"></div>
+	</section>
+</div>
+
+<script>
+// --------------------------------------------
+//
+// Main.js
+// Install browserify dependencies with `npm install --save <package name>`
+// e.g. `npm install --save d3
+//
+// --------------------------------------------
+
+// --------------------------------------------
+// Include terminal-specific JavaScript
+//
+require('../../node_modules/ramen/public/js/modules/terminal.js')
+// require('../../node_modules/underscore/underscore.js')
+
+// --------------------------------------------
+// If you want to use d3, uncomment this line after following the above instructions.
+//
+
+// If you want to use ai2html, uncomment this line.
+// require('./modules/ai2html-resizer')
+
+// Components: uncomment the desired js module(s) and corresponding stylus @require in ~/src/css/stylus.styl
+// require('./modules/components-selecTag')
+// require('./modules/components-buttonGroup')
+// require('./modules/components-table')
+
+var d3 = require('d3')
+var _ = require('underscore')
+
+require('./modules/d3-attachTooltip')
+
+var tooltip = d3.select('.tooltip')
+var template = _.template(d3.select('#ttTemplate').html())
+
+var parseTime = d3.timeParse('%Y'),
+    niceTime = d3.timeFormat('%Y'),
+    bisectDate = d3.bisector(function(d) { return d.year; }).left;
+
+var margin = { top: 50,right: 50,bottom: 70,left: 50},
+    width = 1180 - margin.left - margin.right,
+    height = 900 - margin.top - margin.bottom;
+
+var x = d3.scaleTime().range([0, width]),
+    y = d3.scaleLinear().range([height, 0]);
+
+var xAxis = d3.axisBottom(x)
+            .tickSizeInner(15);
+
+var yAxis = d3.axisRight(y)
+            .ticks(5, 's')
+            .tickSizeInner(1080);
+
+var svgLaborProd = d3.select('#employment').append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+var svgOutputPerEmp = d3.select('#outputPerEmp').append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+var line = d3.line()
+          .x(function(d) { return x(d.year); })
+          .y(function(d) { return y(d.amount); });
+
+d3.csv('data/mfp_by_industry_and_measure_TIDY.csv', function(error, data) {
+    if (error) throw error;
+
+    data.forEach(function(d) {
+        d.amount = +d.amount;
+        d.year = parseTime(d.year)
+    });
+
+    data = data.filter(d => d.measureUnits === '2007=100')
+                .filter(d => d.digit === '3-Digit')
+
+    x.domain(d3.extent(data, function(d) { return d.year; }));
+    // y.domain(d3.extent(data, function(d) { return d.amount; }));
+    y.domain(d3.extent([0,200]));
+
+    var nest = d3.nest()
+        .key(function(d) {return d.measure})
+        .key(function(d) {return d.industry})
+        .entries(data);
+
+    var laborProdData = nest[4];
+    var employmentData = nest[4];
+    var outputData  = nest[5];
+    var outputPerEmpData = nest[6];
+    var capitalContrData = nest[12];
+
+    // draw the lines
+    var industries = svgLaborProd.append('g')
+            .attr('class', 'laborProd-lines')
+            .selectAll('line')
+            .data(laborProdData.values)
+        .enter().append('path')
+            .attr('d', d => line(d.values) )
+            .attr('class', 'line');
+
+    var outputPerEmp = svgLaborProd.append('g')
+        .attr('class', 'outputPerEmp-lines')
+        .selectAll('line')
+        .data(outputPerEmpData.values)
+      .enter().append('path')
+        .attr('d', d=> line(d.values))
+        .attr('class', 'line');
+
+
+    console.log(laborProdData)
+
+    // Add the X Axis
+    svgLaborProd.append('g')
+        .attr('class', 'x axis')
+        .attr('transform', 'translate(0,' + height + ')')
+        .call(xAxis);
+
+    // Add the Y Axis
+    svgLaborProd.append('g')
+        .attr('class', 'y axis')
+        .call(yAxis);
+      
+    svgLaborProd.selectAll('path.line')
+    .call(d3.attachTooltip)
+      .on('mouseover', function(d) {
+        })
+      .on('mouseout', function(d) { 
+        svgLaborProd.selectAll('path.line').classed('hovered',false)
+        tooltip.style('opacity',0);
+        })
+      .on('mousemove', mousemove);
+
+    function mousemove(d) {
+        var el = d3.select(this)
+
+        el.classed('hovered',true)
+        
+        var bisectDate = d3.bisector(function(d) { return d.year; }).right
+        var x0 = x.invert(d3.mouse(svgLaborProd.node())[0]),
+            i = bisectDate(d.values, x0, 1),
+            d0 = d.values[i - 1],
+            d1 = d.values[i],
+            curDatum = x0 - d0.year > d1.year - x0 ? d1 : d0;
+
+        // console.log(x(curDatum.year))
+
+        tooltip.style('opacity',.9).html(template({d:curDatum}))
+            .style('top', y(curDatum.amount)+300+'px')
+            .style('left', x(curDatum.year)+'px');
+
+
+    }
+});
+</script>

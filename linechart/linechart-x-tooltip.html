@@ -78,15 +78,6 @@ div.tooltip {
   margin-left: -12px;
 }
 
-.tooltip-hidden {
-  opacity: 0;
-  -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=0)';
-  filter: alpha(opacity=0);
-}
-.tooltipped {
-  stroke-width: 4px;
-}
-
 .axis {
   font-size: 12px;
   font-family: 'BWHaasText-55Regular', 'HaasText', Helvetica, sans-serif;
@@ -134,7 +125,7 @@ div.tooltip {
 <!-- underscore tooltip template -->
 <script type='text/template' id='ttTemplate'>
   <div id='tt'>
-  <div class='ttYear'><%=niceTime(d.date)%></div>
+  <div class='ttTime'><%=niceTime(d.date)%></div>
   <div class='ttAmount'><%=d.seas_nice%></div>
   </div>
 </script>
@@ -161,8 +152,6 @@ var x = d3.scaleTime().range([0, width]);
 
 var xAxis = d3.axisBottom(x)
     .tickSizeInner(15);
-
-
 
 var yAxis = d3.axisRight(y)
     .ticks(5, 's')
@@ -209,11 +198,6 @@ d3.tsv('data.tsv', function(error, data) {
       .attr('transform', 'translate(' + width + ' ,0)')
       .call(yAxis)
 
-  // svg.append('path')
-  //     .datum(data)
-  //     .attr('class', 'line')
-  //     .attr('d', line)
-
   focus.append('circle')
       .attr('class', 'y focus')
       .attr('r', 4)
@@ -224,10 +208,6 @@ d3.tsv('data.tsv', function(error, data) {
       .attr('height', height)
       .call(d3.attachTooltip)
       .on('mouseover', function(d) {
-        // tooltip.style('opacity',.9).html(template({d:d}))
-        // var el = d3.select(this)
-        // d3.selectAll('.bar').style('opacity',1)
-        // el.style('opacity',1)
         focus.style('display', null); 
         })
       .on('mouseout', function(d) { 
@@ -248,9 +228,7 @@ d3.tsv('data.tsv', function(error, data) {
         .style('left', x(d.date));
 
     focus.select('circle.y')
-        .attr('transform',
-              'translate(' + x(d.date) + ',' +
-                             y(d.seas_checks) + ')');
+        .attr('transform', 'translate(' + x(d.date) + ',' + y(d.seas_checks) + ')');
   }
 
 });
