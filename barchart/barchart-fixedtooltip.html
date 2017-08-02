@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <meta charset='utf-8'>
-
 <link rel="stylesheet" type="text/css" href="http://www.bloomberg.com/graphics/assets/css/fonts.css"/>
 
 <style>
+body {
+  font-family: 'BWHaasText-55Regular', 'HaasText', Helvetica, sans-serif;
+}
 h4 {
   position: absolute !important;
   margin: 25px 0 0 10px;
@@ -102,7 +104,7 @@ div.tooltip {
 }
 
 .ttYear {
-  font-family: 'BWHaasText', 'HaasText', Helvetica, sans-serif;
+  font-family: 'BWHaasText-55Regular', 'HaasText', Helvetica, sans-serif;
   font-size: 14px;
   font-weight: bold;
 }
@@ -113,7 +115,7 @@ div.tooltip {
 </style>
 <body>
   <h4>Bar chart with tooltip, fixed to top of bars</h4>
-  <div class='chart'></div>
+  <div id='chart'></div>
   <div class='tooltip'></div>
 
 <script src="http://www.bloomberg.com/graphics/assets/js/vendor/lodash.underscore.min.js?"></script>
@@ -132,13 +134,8 @@ div.tooltip {
 
 <script>
 var tooltip = d3.select('.tooltip')
-var template = _.template(d3.select('#ttTemplate').html())
 
-// var tooltip = d3.select('.tooltip')
-//     .attr('class', 'tooltip')
-//     .html(function(d) {
-//       return 'hello';
-//     });
+var template = _.template(d3.select('#ttTemplate').html())
 
 var margin = {top: 20, right: 100, bottom: 30, left: 0},
     width = 960 - margin.left - margin.right,
@@ -160,24 +157,19 @@ var yAxis = d3.axisRight(y)
     .ticks(10, 's')
     .tickSizeInner(15);
 
-var svg = d3.select('body').append('svg')
+var svg = d3.select('#chart').append('svg')
     .attr('width', width + margin.left + margin.right)
     .attr('height', height + margin.top + margin.bottom)
   .append('g')
     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
 
 d3.tsv('data.tsv', type, function(error, data) {
   if (error) throw error;
 
   x.domain(data.map(function(d) { return d.year; }));
   y.domain(d3.extent(data, function(d) { return d.amount; }));
-
-
-  // var tooltip = d3.select('.tooltip')
-  //   .attr('class', 'tooltip')
-  //   .html(function(d) {
-  //     return 'hello';
-  //   });
 
   svg.append('g')
       .attr('class', 'x axis')

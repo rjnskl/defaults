@@ -114,8 +114,8 @@ div.tooltip {
 
 </style>
 <body>
-  <h4>Bar chart with tooltip, fixed to top of bars</h4>
-  <div class='chart'></div>
+  <h4>Bar chart with floating tooltip</h4>
+  <div id='chart'></div>
   <div class='tooltip'></div>
 
 <script src="http://www.bloomberg.com/graphics/assets/js/vendor/lodash.underscore.min.js?"></script>
@@ -128,7 +128,7 @@ div.tooltip {
 <script type='text/template' id='ttTemplate'>
   <div id='tt'>
   <div class='ttYear'><%=d.year%></div>
-  <div class='ttAmount'><%=d.amount%></div>
+  <div class='ttAmount'><%=commaFormat(d.amount)%></div>
   </div>
 </script>
 
@@ -156,7 +156,9 @@ var yAxis = d3.axisRight(y)
     .ticks(10, 's')
     .tickSizeInner(15);
 
-var svg = d3.select('body').append('svg')
+var commaFormat = d3.format(",")
+
+var svg = d3.select('#chart').append('svg')
     .attr('width', width + margin.left + margin.right)
     .attr('height', height + margin.top + margin.bottom)
   .append('g')
