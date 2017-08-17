@@ -53,6 +53,7 @@
 
 <body>
 	<h4>Responsive Bar Chart with only start and end dates</h4>
+	<p>From <a href="https://bl.ocks.org/rcrocker13/41e581c5333a3420dd42969b6049be74/646a7d94d45e97885e13f778a9656783cfa6435e" target="_blank">rcrocker13's responsive bars block example</a></p>
 	<div id='chart'></div>
 
 
@@ -109,23 +110,24 @@
 					.ticks(10, 's')
 					.tickSizeInner(15);
 
-				svg.append('g')
-					.attr('class', 'x axis')
-					.attr('transform', 'translate(0,' + height + ')')
+				// seems I can't place these axis relative to width and height
 
 				svg.append('g')
-					.attr('class', 'y axis')
-					.attr('transform', 'translate(' + width + ' ,0)')
+					.attr('class', 'x axis')
 
 				svg.select('.x.axis')
 					.attr('transform', 'translate(0,' + height + ')')
 					.call(xAxis)
 
+				svg.append('g')
+					.attr('class', 'y axis')
+
 				svg.select('.y.axis')
 					.attr('transform', 'translate(' + width + ' ,0)')
 					.call(yAxis)
 
-				// doing it this way will draw axis on top of each other on resize:
+
+				// doing it this way will draw new axis on top on resize:
 
 				// svg.append('g')
 				// 	.attr('class', 'x axis')
@@ -150,31 +152,28 @@
 
 				var bars = svg.selectAll('.bar')
 						.data(data, function(d) { return d.year });
-						// .data(data);
 
-				//fancy bars with animation in???
-				// it also draws the bars in a different way than I have been doing
-				bars.enter().append("rect")
-				    .attr("class", "bar")
-				    .attr("y", y(0))
-				    .attr("height", height - y(0))
-				    .transition()
-				    .delay(function(d, i) {return i * 25;})
-				    .duration(250)
-				    .attr("x", function(d) { return x(d.year); })
-				    .attr("width", x.bandwidth())
-				    .attr("y", function(d) { return y(d.amount); })
-				    .attr("height", function(d) { return height - y(d.amount); });
+								// bars without animation
+				bars.enter().append('rect')
+						.attr('class', 'bar')
+						.attr('x', function(d) { return x(d.year); })
+						.attr('width', x.bandwidth())
+						.attr('y', function(d) { return y(d.amount); })
+						.attr('height', function(d) { return height - y(d.amount); });
 
+				//fancy bars with animation 
+				// bars.enter().append("rect")
+				//     .attr("class", "bar")
+				//     .attr("y", y(0))
+				//     .attr("height", height - y(0))
+				//     .transition()
+				//     .delay(function(d, i) {return i * 25;})
+				//     .duration(250)
+				//     .attr("x", function(d) { return x(d.year); })
+				//     .attr("width", x.bandwidth())
+				//     .attr("y", function(d) { return y(d.amount); })
+				//     .attr("height", function(d) { return height - y(d.amount); });
 
-				console.log(y(0))
-
-				// bars.enter().append('rect')
-				// 		.attr('class', 'bar')
-				// 		.attr('x', function(d) { return x(d.year); })
-				// 		.attr('width', x.bandwidth())
-				// 		.attr('y', function(d) { return y(d.amount); })
-				// 		.attr('height', function(d) { return height - y(d.amount); });
 
 				createAxis();
 			}
@@ -220,6 +219,7 @@
 			  .attr("height", function(d) { return height - y(d.amount); });
 
 			createAxis();
+			
 			}
 		};
 
