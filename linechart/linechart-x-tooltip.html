@@ -86,7 +86,7 @@ div.tooltip {
 .axis path,
 .axis line {
   fill: none;
-  stroke: #ccc;
+  stroke: #000;
   shape-rendering: crispEdges;
 }
 
@@ -158,8 +158,22 @@ var yAxis = d3.axisRight(y)
     .tickSizeInner(15);
 
 var line = d3.line()
+    .curve(d3.curveNatural)
+    // .curve(d3.curveMonotoneX)
+    // .curve(d3.curveMonotoneY)
+    // .curve(d3.curveBasis) // smooths line based on data as control points
+    // .curve(d3.curveBasisClosed) // closes the shape
+    // .curve(d3.curveBundle.beta(0)) // where 1 is curviest and 0 is a straight line
+    // .curve(d3.curveCardinal.tension(.5)) // smooths line but actually touches/goes through each point, rather than in between. 1 is tightest, 0 is curviest.
+    // .curve(d3.curveStep) // step is in the middle
+    // .curve(d3.curveStepBefore)
+    // .curve(d3.curveStepAfter)
     .x(function(d) { return x(d.date); })
     .y(function(d) { return y(d.seas_checks); });
+
+// more line interpolation example here: 
+// https://bl.ocks.org/d3noob/ced1b9b18bd8192d2c898884033b5529
+// https://github.com/d3/d3-shape/blob/master/README.md#curves
 
 var svg = d3.select('.chart').append('svg')
     .attr('width', width + margin.left + margin.right)
@@ -217,6 +231,7 @@ d3.tsv('data.tsv', function(error, data) {
       .on('mousemove', mousemove);
   
   function mousemove(d) {
+    // don't really understand this bit
     var x0 = x.invert(d3.mouse(this)[0]),
         i = bisectDate(data, x0, 1),
         d0 = data[i - 1],

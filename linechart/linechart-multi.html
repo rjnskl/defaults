@@ -2,279 +2,235 @@
 <meta charset='utf-8'>
 <link rel='stylesheet' type='text/css' href='http://www.bloomberg.com/graphics/assets/css/fonts.css'/>
 
-<!-- FIX ALL THIS STYLUS -->
 <style>
-  // chart styles
-  .big-graph {
-    width: 1180px;
-    margin: 50px auto;
-  }
-  #employment {
-    width 1180px
-    margin 0 auto
-  }
-  .axis
-    font-size 14px
-    font-family 'BWHaasText', 'Helvetica', sans-serif
+body {
+  font-family: 'BWHaasText-55Regular', 'HaasText', Helvetica, sans-serif;
+}
 
-  .axis path,
-  .axis line
-    fill none
-    stroke #ccc
-    shape-rendering crispEdges
+h4 {
+  position: absolute !important;
+  margin: 25px 0 0 10px;
+}
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
 
-  .x.axis path
-  /*  display none*/
-  .y.axis path
-    display none
+.focus {
+  fill: none;
+  stroke: #272727;
+  stroke-width: 2px;
+}
 
-  .line
-    fill none
-    stroke #ccc
-    opacity .2
-    stroke-width 5px
-  
-  .overlay
-    fill none
-    pointer-events all
+div.tooltip {
+  width: auto;
+  height: auto;
+  position: fixed;
+  z-index: 10;
+  -webkit-transition: all 0.05s ease-in-out;
+  -moz-transition: all 0.05s ease-in-out;
+  -o-transition: all 0.05s ease-in-out;
+  -ms-transition: all 0.05s ease-in-out;
+  -webkit-transition: all 0.05s ease-in-out;
+  -moz-transition: all 0.05s ease-in-out;
+  -o-transition: all 0.05s ease-in-out;
+  -ms-transition: all 0.05s ease-in-out;
+  transition: all 0.05s ease-in-out;
+  top: -1000px;
+  position: absolute;
+  padding: 10px;
+  background: rgba(255,255,255,1);
+  border: 1px solid #d3d3d3;
+  pointer-events: none;
+}
+.tooltip-hidden {
+  opacity: 0;
+  -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=0)';
+  filter: alpha(opacity=0);
+}
+.tooltipped {
+  stroke-width: 4px;
+}
+.tooltip:after, 
+.tooltip:before {
+  box-sizing:border-box;
+  -webkit-font-smoothing: antialiased;
+  top: 100%;
+  left: 50%;
+  border: solid transparent;
+  content: ' ';
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+}
+.tooltip:before {
+  border-color: rgba(102, 102, 102, 0);
+  border-top-color: lightgray;
+  border-width: 13px;
+  margin-left: -13px;
+}
+.tooltip:after {
+  border-color: rgba(255, 255, 255, 0);
+  border-top-color: #fff;
+  border-width: 12px;
+  margin-left: -12px;
+}
 
-  .focus
-    fill none
-    stroke #272727
-    stroke-width 2px
-  .industry--hover
-    opacity 1
-    stroke #000
-  
-  // tooltip style
-  div.tooltip
-    width auto
-    height auto
-    position fixed
-    z-index 10
-    -webkit-transition all 0.05s ease-in-out
-    -moz-transition all 0.05s ease-in-out
-    -o-transition all 0.05s ease-in-out
-    -ms-transition all 0.05s ease-in-out
-    -webkit-transition all 0.05s ease-in-out
-    -moz-transition all 0.05s ease-in-out
-    -o-transition all 0.05s ease-in-out
-    -ms-transition all 0.05s ease-in-out
-    transition all 0.05s ease-in-out
-    top -1000px
-    position absolute
-    padding 10px
-    background rgba(255,255,255,1)
-    border 1px solid #d3d3d3
-    pointer-events none
-  .tooltip-hidden
-    opacity 0
-  .tooltipped
-    stroke #000
-  .tooltipafter, 
-  .tooltipbefore
-    box-sizingborder-box
-    -webkit-font-smoothing antialiased
-    top 100%
-    left 50%
-    border solid transparent
-    content ' '
-    height 0
-    width 0
-    position absolute
-    pointer-events none
-    z-index 100
-  .tooltipbefore
-    border-color rgba(102, 102, 102, 0)
-    border-top-color lightgray
-    border-width 13px
-    margin-left -13px
-  .tooltipafter
-    border-color rgba(255, 255, 255, 0)
-    border-top-color #fff
-    border-width 12px
-    margin-left -12px
-  .ttIndustry,
-  .ttTime
-    font-family 'BWHaasText', 'Helvetica', sans-serif
-    font-size 14px
-    font-weight bold
-  .ttAmount
-    font-size 21px
-  .hovered
-    stroke #000  
-    opacity 1
+.tooltip-hidden {
+  opacity: 0;
+  -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=0)';
+  filter: alpha(opacity=0);
+}
+.tooltipped {
+  stroke-width: 4px;
+}
+
+.axis {
+  font-size: 12px;
+  font-family: 'BWHaasText-55Regular', 'HaasText', Helvetica, sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+/*  display: none;*/
+}
+.y.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: #272727;
+  stroke-width: 2px;
+}
+
+.ttTime {
+  font-family: 'BWHaasText-55Regular', 'HaasText', Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+}
+.ttAmount {
+  font-size: 21px;
+}
+
 </style>
+<body>
+  <h4>Multi-Line Chart</h4>
+  <div class='chart'></div>
+<!--   <svg width="960" height="500"></svg> -->
+  <div class='tooltip'></div>
 
-<div class="dvz-content">
-	<div class='tooltip'></div>
+<script src='http://www.bloomberg.com/graphics/assets/js/vendor/lodash.underscore.min.js?'></script>
+<script src='https://d3js.org/d3.v4.js'></script>
+<script src='../assets/d3-starterkit.js'></script>
 
-	<section class='big-graph'>
-	  <h3>Labor Productivity, 2010 Index</h3>
-	  <div id="employment"></div>
-	</section>
-
-	<section class='big-graph'>
-	  <h3>Output per Employee</h3>
-	  <div id="outputPerEmp"></div>
-	</section>
-</div>
+<!-- underscore tooltip template -->
+<script type='text/template' id='ttTemplate'>
+  <div id='tt'>
+  <div class='ttYear'><%=niceTime(d.date)%></div>
+  <div class='ttAmount'><%=d.seas_nice%></div>
+  </div>
+</script>
 
 <script>
-// --------------------------------------------
-//
-// Main.js
-// Install browserify dependencies with `npm install --save <package name>`
-// e.g. `npm install --save d3
-//
-// --------------------------------------------
+var margin = {top: 20, right: 80, bottom: 30, left: 50},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
 
-// --------------------------------------------
-// Include terminal-specific JavaScript
-//
-require('../../node_modules/ramen/public/js/modules/terminal.js')
-// require('../../node_modules/underscore/underscore.js')
+var svg = d3.select('.chart').append('svg')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', height + margin.top + margin.bottom)
+    
+var g = svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-// --------------------------------------------
-// If you want to use d3, uncomment this line after following the above instructions.
-//
-
-// If you want to use ai2html, uncomment this line.
-// require('./modules/ai2html-resizer')
-
-// Components: uncomment the desired js module(s) and corresponding stylus @require in ~/src/css/stylus.styl
-// require('./modules/components-selecTag')
-// require('./modules/components-buttonGroup')
-// require('./modules/components-table')
-
-var d3 = require('d3')
-var _ = require('underscore')
-
-require('./modules/d3-attachTooltip')
-
-var tooltip = d3.select('.tooltip')
-var template = _.template(d3.select('#ttTemplate').html())
-
-var parseTime = d3.timeParse('%Y'),
-    niceTime = d3.timeFormat('%Y'),
-    bisectDate = d3.bisector(function(d) { return d.year; }).left;
-
-var margin = { top: 50,right: 50,bottom: 70,left: 50},
-    width = 1180 - margin.left - margin.right,
-    height = 900 - margin.top - margin.bottom;
+var parseTime = d3.timeParse("%Y%m%d");
 
 var x = d3.scaleTime().range([0, width]),
-    y = d3.scaleLinear().range([height, 0]);
-
-var xAxis = d3.axisBottom(x)
-            .tickSizeInner(15);
-
-var yAxis = d3.axisRight(y)
-            .ticks(5, 's')
-            .tickSizeInner(1080);
-
-var svgLaborProd = d3.select('#employment').append('svg')
-            .attr('width', width + margin.left + margin.right)
-            .attr('height', height + margin.top + margin.bottom)
-        .append('g')
-            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-var svgOutputPerEmp = d3.select('#outputPerEmp').append('svg')
-            .attr('width', width + margin.left + margin.right)
-            .attr('height', height + margin.top + margin.bottom)
-        .append('g')
-            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+    y = d3.scaleLinear().range([height, 0]),
+    z = d3.scaleOrdinal(['black', 'blue', 'green']);
 
 var line = d3.line()
-          .x(function(d) { return x(d.year); })
-          .y(function(d) { return y(d.amount); });
+    .curve(d3.curveBasis)
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.temperature); });
 
-d3.csv('data/mfp_by_industry_and_measure_TIDY.csv', function(error, data) {
-    if (error) throw error;
+var xAxis = d3.axisBottom(x)
+    .tickSizeInner(15);
 
-    data.forEach(function(d) {
-        d.amount = +d.amount;
-        d.year = parseTime(d.year)
-    });
+var yAxis = d3.axisRight(y)
+    .ticks(5, 's')
+    .tickSizeInner(15);
 
-    data = data.filter(d => d.measureUnits === '2007=100')
-                .filter(d => d.digit === '3-Digit')
-
-    x.domain(d3.extent(data, function(d) { return d.year; }));
-    // y.domain(d3.extent(data, function(d) { return d.amount; }));
-    y.domain(d3.extent([0,200]));
-
-    var nest = d3.nest()
-        .key(function(d) {return d.measure})
-        .key(function(d) {return d.industry})
-        .entries(data);
-
-    var laborProdData = nest[4];
-    var employmentData = nest[4];
-    var outputData  = nest[5];
-    var outputPerEmpData = nest[6];
-    var capitalContrData = nest[12];
-
-    // draw the lines
-    var industries = svgLaborProd.append('g')
-            .attr('class', 'laborProd-lines')
-            .selectAll('line')
-            .data(laborProdData.values)
-        .enter().append('path')
-            .attr('d', d => line(d.values) )
-            .attr('class', 'line');
-
-    var outputPerEmp = svgLaborProd.append('g')
-        .attr('class', 'outputPerEmp-lines')
-        .selectAll('line')
-        .data(outputPerEmpData.values)
-      .enter().append('path')
-        .attr('d', d=> line(d.values))
-        .attr('class', 'line');
+var key = d3.select('.key').append('svg')
 
 
-    console.log(laborProdData)
+d3.tsv("multi-data.tsv", type, function(error, data) {
+  if (error) throw error;
 
-    // Add the X Axis
-    svgLaborProd.append('g')
-        .attr('class', 'x axis')
-        .attr('transform', 'translate(0,' + height + ')')
-        .call(xAxis);
+  // maps the csv into a json object, starting at the 2nd column (slice(1))
+  // with key/id of the city name (column name) and an array of values that contain the date + value
+  var cities = data.columns.slice(1).map(function(id) {
+    return {
+      id: id,
+      values: data.map(function(d) {
+        return {date: d.date, temperature: d[id]};
+      })
+    };
+  });
 
-    // Add the Y Axis
-    svgLaborProd.append('g')
-        .attr('class', 'y axis')
-        .call(yAxis);
-      
-    svgLaborProd.selectAll('path.line')
-    .call(d3.attachTooltip)
-      .on('mouseover', function(d) {
-        })
-      .on('mouseout', function(d) { 
-        svgLaborProd.selectAll('path.line').classed('hovered',false)
-        tooltip.style('opacity',0);
-        })
-      .on('mousemove', mousemove);
+  console.log(cities);
 
-    function mousemove(d) {
-        var el = d3.select(this)
+  x.domain(d3.extent(data, function(d) { return d.date; }));
 
-        el.classed('hovered',true)
-        
-        var bisectDate = d3.bisector(function(d) { return d.year; }).right
-        var x0 = x.invert(d3.mouse(svgLaborProd.node())[0]),
-            i = bisectDate(d.values, x0, 1),
-            d0 = d.values[i - 1],
-            d1 = d.values[i],
-            curDatum = x0 - d0.year > d1.year - x0 ? d1 : d0;
+  y.domain([
+    d3.min(cities, function(c) { return d3.min(c.values, function(d) { return d.temperature; }); }),
+    d3.max(cities, function(c) { return d3.max(c.values, function(d) { return d.temperature; }); })
+  ]);
 
-        // console.log(x(curDatum.year))
+  z.domain(cities.map(function(c) { return c.id; }));
 
-        tooltip.style('opacity',.9).html(template({d:curDatum}))
-            .style('top', y(curDatum.amount)+300+'px')
-            .style('left', x(curDatum.year)+'px');
+  g.append('g')
+      .attr('class', 'x axis')
+      .attr('transform', 'translate(0,' + height + ')')
+      .call(xAxis);
 
+  g.append('g')
+      .attr('class', 'y axis')
+      .attr('transform', 'translate(' + width + ' ,0)')
+      .call(yAxis)
 
-    }
+  var city = g.selectAll(".city")
+    .data(cities)
+    .enter().append("g")
+      .attr("class", "city");
+
+  city.append("path")
+      .attr("class", "line")
+      .attr("d", function(d) { return line(d.values); })
+      .style("stroke", function(d) { return z(d.id); });
+
+  // city.append("text")
+  //     .datum(function(d) { return {id: d.id, value: d.values[d.values.length - 1]}; })
+  //     .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.temperature) + ")"; })
+  //     .attr("x", 3)
+  //     .attr("dy", "0.35em")
+  //     .style("font", "14px sans-serif")
+  //     .text(function(d) { return d.id; });
 });
+
+function type(d, _, columns) {
+  d.date = parseTime(d.date);
+  for (var i = 1, n = columns.length, c; i < n; ++i) d[c = columns[i]] = +d[c];
+  return d;
+}
+
 </script>
