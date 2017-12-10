@@ -125,7 +125,7 @@ div.tooltip {
 <body>
   <h4>Multi-Line Chart</h4>
   <div class='chart'></div>
-<!--   <svg width="960" height="500"></svg> -->
+<!--   <svg width='960' height='500'></svg> -->
   <div class='tooltip'></div>
 
 <script src='http://www.bloomberg.com/graphics/assets/js/vendor/lodash.underscore.min.js?'></script>
@@ -149,10 +149,10 @@ var svg = d3.select('.chart').append('svg')
     .attr('width', width + margin.left + margin.right)
     .attr('height', height + margin.top + margin.bottom)
     
-var g = svg.append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+var g = svg.append('g')
+    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-var parseTime = d3.timeParse("%Y%m%d");
+var parseTime = d3.timeParse('%Y%m%d');
 
 var x = d3.scaleTime().range([0, width]),
     y = d3.scaleLinear().range([height, 0]),
@@ -173,7 +173,7 @@ var yAxis = d3.axisRight(y)
 var key = d3.select('.key').append('svg')
 
 
-d3.tsv("multi-data.tsv", type, function(error, data) {
+d3.tsv('multi-data.tsv', type, function(error, data) {
   if (error) throw error;
 
   // maps the csv into a json object, starting at the 2nd column (slice(1))
@@ -208,24 +208,92 @@ d3.tsv("multi-data.tsv", type, function(error, data) {
       .attr('transform', 'translate(' + width + ' ,0)')
       .call(yAxis)
 
-  var city = g.selectAll(".city")
+  var city = g.selectAll('.city')
     .data(cities)
-    .enter().append("g")
-      .attr("class", "city");
+    .enter().append('g')
+      .attr('class', 'city');
 
-  city.append("path")
-      .attr("class", "line")
-      .attr("d", function(d) { return line(d.values); })
-      .style("stroke", function(d) { return z(d.id); });
+  city.append('path')
+      .attr('class', 'line')
+      .attr('d', function(d) { return line(d.values); })
+      .style('stroke', function(d) { return z(d.id); });
 
-  // city.append("text")
-  //     .datum(function(d) { return {id: d.id, value: d.values[d.values.length - 1]}; })
-  //     .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.temperature) + ")"; })
-  //     .attr("x", 3)
-  //     .attr("dy", "0.35em")
-  //     .style("font", "14px sans-serif")
-  //     .text(function(d) { return d.id; });
-});
+
+  // tooltip bit
+  var lines = document.getElementsByClassName('line');
+
+  var hover = g.append('g')
+  .attr('class', 'hovers')
+  .style('display', 'none');
+
+  var eachHover = hover.selectAll('.hover')
+    .data(cities)
+    .enter()
+    .append('g')
+    .attr('class', 'each-hover')
+
+  eachHover.append('circle')
+    .attr('r', 3)
+    .style('fill', function(d) {
+      return z(d.name);
+    })
+    .style('opacity', '0');
+
+  eachHover.append('text')
+    .attr('transform', 'translate(10,3)');
+
+  hover.append('svg:rect')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('fill', 'none')
+    .attr('pointer-events', 'all')
+    .on('mouseout', mouseout)
+    .on('mouseover', mouseover)
+    .on('mousemove', mousemove);
+
+  function mouseover() {
+    d3.selectAll('.each-hover circle')
+      .style('opacity', '1');
+  }
+  function mouseout() {
+    d3.selectAll('.each-hover circle')
+      .style('opacity', '0');
+  }
+  function mousemove() {
+    var mouse = d3.mouse(this);
+
+    d3.selectAll('.each-hover')
+      .attr('transform', function(d,i) {
+
+        // console.log(width/mouse[0])
+
+        var xDate = x.invert(mouse[0]),
+            bisect = d3.bisector(function(d) { return d.date; }).right;
+            idx = bisect(d.values, xDate);
+
+        var beginning = 0,
+            end = lines[i].getTotalLength(),
+            target = null;
+
+        while (true){
+          target = Math.floor((beginning + end) / 2);
+          pos = lines[i].getPointAtLength(target);
+          if ((target === end || target === beginning) && pos.x !== mouse[0]
+          ) {
+            break;
+          }
+          if (pos.x > mouse[0]) end = target;
+          else if (pos.x < mouse) beginning = target;
+          else break;
+        }
+
+        d3.select(this).select('text')
+          .text(y.invert(pos.y).toFixed(2));
+
+        return 'translate(' + mouse[0] + ',' + pos.y +')';
+      });
+    }
+  });
 
 function type(d, _, columns) {
   d.date = parseTime(d.date);
