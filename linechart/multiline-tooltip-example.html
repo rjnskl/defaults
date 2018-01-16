@@ -52,7 +52,28 @@
 20111019\t62.1\t58.9\t61.6\n\
 20111020\t65.1\t57.2\t57.4\n\
 20111021\t55.6\t56.4\t64.3\n\
-20111022\t54.4\t60.7\t72.4\n";
+20111022\t63.4\t62.7\t72.2\n\
+20111023\t58.0\t59.9\t67.7\n\
+20111024\t53.3\t59.1\t69.4\n\
+20111025\t55.7\t58.8\t68.0\n\
+20111026\t64.2\t58.7\t72.4\n\
+20111027\t58.8\t57.0\t77.0\n\
+20111028\t57.9\t56.7\t82.3\n\
+20111029\t61.8\t56.8\t78.9\n\
+20111030\t69.3\t56.7\t68.8\n\
+20111031\t71.2\t60.1\t68.7\n\
+20111101\t68.7\t61.1\t70.3\n\
+20111102\t61.8\t61.5\t75.3\n\
+20111103\t63.0\t64.3\t76.6\n\
+20111104\t66.9\t67.1\t66.6\n\
+20111105\t61.7\t64.6\t68.0\n\
+20111106\t61.8\t61.6\t70.6\n\
+20111107\t62.8\t61.1\t71.1\n\
+20111108\t60.8\t59.2\t70.0\n\
+20111109\t62.1\t58.9\t61.6\n\
+20111110\t65.1\t57.2\t57.4\n\
+20111111\t55.6\t56.4\t64.3\n\
+20111112\t54.4\t60.7\t72.4\n";
 
     var margin = {
         top: 20,
@@ -192,22 +213,6 @@
         return color(d.name);
       });
 
-    // city.append("text")
-    //   .datum(function(d) {
-    //     return {
-    //       name: d.name,
-    //       value: d.values[d.values.length - 1]
-    //     };
-    //   })
-    //   .attr("transform", function(d) {
-    //     return "translate(" + x(d.value.date) + "," + y(d.value.temperature) + ")";
-    //   })
-    //   .attr("x", 3)
-    //   .attr("dy", ".35em")
-    //   .text(function(d) {
-    //     return d.name;
-    //   });
-
     var mouseG = svg.append("g")
       .attr("class", "mouse-over-effects");
 
@@ -285,6 +290,11 @@
             return "translate(" + mouse[0] + "," + pos.y +")";
           });
       });
+
+  // function type(d, _, columns) {
+  // d.date = parseTime(d.date);
+  // for (var i = 1, n = columns.length, c; i < n; ++i) d[c = columns[i]] = +d[c];
+  // return d;
       
   </script>
 </body>

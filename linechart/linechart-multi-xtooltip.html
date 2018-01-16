@@ -22,71 +22,6 @@ h4 {
   stroke-width: 2px;
 }
 
-div.tooltip {
-  width: auto;
-  height: auto;
-  position: fixed;
-  z-index: 10;
-  -webkit-transition: all 0.05s ease-in-out;
-  -moz-transition: all 0.05s ease-in-out;
-  -o-transition: all 0.05s ease-in-out;
-  -ms-transition: all 0.05s ease-in-out;
-  -webkit-transition: all 0.05s ease-in-out;
-  -moz-transition: all 0.05s ease-in-out;
-  -o-transition: all 0.05s ease-in-out;
-  -ms-transition: all 0.05s ease-in-out;
-  transition: all 0.05s ease-in-out;
-  top: -1000px;
-  position: absolute;
-  padding: 10px;
-  background: rgba(255,255,255,1);
-  border: 1px solid #d3d3d3;
-  pointer-events: none;
-}
-.tooltip-hidden {
-  opacity: 0;
-  -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=0)';
-  filter: alpha(opacity=0);
-}
-.tooltipped {
-  stroke-width: 4px;
-}
-.tooltip:after, 
-.tooltip:before {
-  box-sizing:border-box;
-  -webkit-font-smoothing: antialiased;
-  top: 100%;
-  left: 50%;
-  border: solid transparent;
-  content: ' ';
-  height: 0;
-  width: 0;
-  position: absolute;
-  pointer-events: none;
-  z-index: 100;
-}
-.tooltip:before {
-  border-color: rgba(102, 102, 102, 0);
-  border-top-color: lightgray;
-  border-width: 13px;
-  margin-left: -13px;
-}
-.tooltip:after {
-  border-color: rgba(255, 255, 255, 0);
-  border-top-color: #fff;
-  border-width: 12px;
-  margin-left: -12px;
-}
-
-.tooltip-hidden {
-  opacity: 0;
-  -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=0)';
-  filter: alpha(opacity=0);
-}
-.tooltipped {
-  stroke-width: 4px;
-}
-
 .axis {
   font-size: 12px;
   font-family: 'BWHaasText-55Regular', 'HaasText', Helvetica, sans-serif;
@@ -112,33 +47,20 @@ div.tooltip {
   stroke-width: 2px;
 }
 
-.ttTime {
-  font-family: 'BWHaasText-55Regular', 'HaasText', Helvetica, sans-serif;
-  font-size: 14px;
-  font-weight: bold;
+.hover-text {
+  background-color: white;
 }
-.ttAmount {
-  font-size: 21px;
-}
+
 
 </style>
 <body>
-  <h4>Multi-Line Chart</h4>
+  <h4>Multi-Line Chart with tooltips???</h4>
   <div class='chart'></div>
-<!--   <svg width='960' height='500'></svg> -->
-  <div class='tooltip'></div>
 
 <script src='http://www.bloomberg.com/graphics/assets/js/vendor/lodash.underscore.min.js?'></script>
 <script src='https://d3js.org/d3.v4.js'></script>
 <script src='../assets/d3-starterkit.js'></script>
 
-<!-- underscore tooltip template -->
-<script type='text/template' id='ttTemplate'>
-  <div id='tt'>
-  <div class='ttYear'><%=niceTime(d.date)%></div>
-  <div class='ttAmount'><%=d.seas_nice%></div>
-  </div>
-</script>
 
 <script>
 var margin = {top: 20, right: 80, bottom: 30, left: 50},
@@ -170,10 +92,9 @@ var yAxis = d3.axisRight(y)
     .ticks(5, 's')
     .tickSizeInner(15);
 
-var key = d3.select('.key').append('svg')
 
 
-d3.tsv('multi-data.tsv', type, function(error, data) {
+d3.tsv('city-temps.tsv', type, function(error, data) {
   if (error) throw error;
 
   // maps the csv into a json object, starting at the 2nd column (slice(1))
@@ -186,8 +107,6 @@ d3.tsv('multi-data.tsv', type, function(error, data) {
       })
     };
   });
-
-  console.log(cities);
 
   x.domain(d3.extent(data, function(d) { return d.date; }));
 
@@ -220,11 +139,16 @@ d3.tsv('multi-data.tsv', type, function(error, data) {
 
 
   // tooltip bit
-  var lines = document.getElementsByClassName('line');
-
   var hover = g.append('g')
-  .attr('class', 'hovers')
-  .style('display', 'none');
+  .attr('class', 'hovers');
+
+  hover.append('path') // this is the black vertical line to follow mouse
+    .attr('class', 'mouse-line')
+    .style('stroke', 'black')
+    .style('stroke-width', '1px')
+    .style('opacity', '0');
+
+  var lines = document.getElementsByClassName('line');
 
   var eachHover = hover.selectAll('.hover')
     .data(cities)
@@ -233,13 +157,14 @@ d3.tsv('multi-data.tsv', type, function(error, data) {
     .attr('class', 'each-hover')
 
   eachHover.append('circle')
-    .attr('r', 3)
+    .attr('r', 5)
     .style('fill', function(d) {
-      return z(d.name);
+      return z(d.id);
     })
     .style('opacity', '0');
 
   eachHover.append('text')
+    .attr('class', 'hover-text')
     .attr('transform', 'translate(10,3)');
 
   hover.append('svg:rect')
@@ -247,53 +172,50 @@ d3.tsv('multi-data.tsv', type, function(error, data) {
     .attr('height', height)
     .attr('fill', 'none')
     .attr('pointer-events', 'all')
-    .on('mouseout', mouseout)
-    .on('mouseover', mouseover)
-    .on('mousemove', mousemove);
+    .on('mouseout', function() { // on mouse out hide line, circles and text
+        d3.selectAll('.each-hover circle')
+          .style('opacity', '0');
+        d3.selectAll('.each-hover text')
+          .style('opacity', '0');
+      })
+      .on('mouseover', function() { // on mouse in show line, circles and text
+        d3.selectAll('.each-hover circle')
+          .style('opacity', '1');
+        d3.selectAll('.each-hover text')
+          .style('opacity', '1');
+      })
+      .on('mousemove', function() { // mouse moving over canvas
+        var mouse = d3.mouse(this);
 
-  function mouseover() {
-    d3.selectAll('.each-hover circle')
-      .style('opacity', '1');
-  }
-  function mouseout() {
-    d3.selectAll('.each-hover circle')
-      .style('opacity', '0');
-  }
-  function mousemove() {
-    var mouse = d3.mouse(this);
+        d3.selectAll('.each-hover')
+          .attr('transform', function(d, i) {
+            console.log(width/mouse[0])
+            var xDate = x.invert(mouse[0]),
+                bisect = d3.bisector(function(d) { return d.date; }).right;
+                idx = bisect(d.values, xDate);
+            
+            var beginning = 0,
+                end = lines[i].getTotalLength(),
+                target = null;
 
-    d3.selectAll('.each-hover')
-      .attr('transform', function(d,i) {
-
-        // console.log(width/mouse[0])
-
-        var xDate = x.invert(mouse[0]),
-            bisect = d3.bisector(function(d) { return d.date; }).right;
-            idx = bisect(d.values, xDate);
-
-        var beginning = 0,
-            end = lines[i].getTotalLength(),
-            target = null;
-
-        while (true){
-          target = Math.floor((beginning + end) / 2);
-          pos = lines[i].getPointAtLength(target);
-          if ((target === end || target === beginning) && pos.x !== mouse[0]
-          ) {
-            break;
-          }
-          if (pos.x > mouse[0]) end = target;
-          else if (pos.x < mouse) beginning = target;
-          else break;
-        }
-
-        d3.select(this).select('text')
-          .text(y.invert(pos.y).toFixed(2));
-
-        return 'translate(' + mouse[0] + ',' + pos.y +')';
+            while (true){
+              target = Math.floor((beginning + end) / 2);
+              pos = lines[i].getPointAtLength(target);
+              if ((target === end || target === beginning) && pos.x !== mouse[0]) {
+                  break;
+              }
+              if (pos.x > mouse[0])      end = target;
+              else if (pos.x < mouse[0]) beginning = target;
+              else break; //position found
+            }
+            
+            d3.select(this).select('text')
+              .text(y.invert(pos.y).toFixed(2));
+              
+            return 'translate(' + mouse[0] + ',' + pos.y +')';
+          });
       });
-    }
-  });
+});
 
 function type(d, _, columns) {
   d.date = parseTime(d.date);
