@@ -78,7 +78,7 @@ var parseTime = d3.timeParse('%Y%m%d');
 
 var x = d3.scaleTime().range([0, width]),
     y = d3.scaleLinear().range([height, 0]),
-    z = d3.scaleOrdinal(['black', 'blue', 'green']);
+    z = d3.scaleOrdinal(['#ffcc00', '#0099ff', '#ff3300']);
 
 var line = d3.line()
     .curve(d3.curveBasis)

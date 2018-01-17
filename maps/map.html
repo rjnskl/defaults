@@ -1,0 +1,162 @@
+<style>
+  #map .nyc{
+    stroke: #000;
+    fill: #fff;
+    stroke-width: .2px;
+  }
+  .parcels {
+    fill: black;
+  }
+  .bubbles circle {
+    fill-opacity: 1;
+    fill: #fa0033;
+    mix-blend-mode: multiply;
+    stroke: black;
+    stroke-width: .5;
+  }
+  .tooltip {
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 18px;
+    color: #fff;
+    opacity: 1;
+    position: fixed;
+    padding: 10px
+    background: rgba(0, 0, 0, .9);
+    pointer-events: none;
+    transition: opacity .2s ease-in-out;
+    max-width: 300px;
+  }
+  .tooltip-hidden {
+    opacity: 0;
+  }
+
+
+</style>
+<body>
+  <div id="map"></div>
+
+<script src='https://d3js.org/d3.v4.js'></script>
+<script src="https://d3js.org/topojson.v2.min.js"></script>
+<script src='../assets/d3-starterkit.js'></script>
+
+<script>
+var tt = d3.select('.dvz-content').append('div.copy-width').append('div.tooltip.tooltip-hidden') 
+
+var parseDate = d3.timeParse('%-m/%-d/%-y');
+var getYear = d3.timeFormat('%Y');
+var formatValue = d3.format('.2s');
+var fixBillions = function (val) {
+  return formatValue(val).replace('G', 'B');
+};
+
+// var tt = d3.select('.dvz-content').append('div.copy-width').append('div.tooltip.tooltip-hidden')
+
+var width = 740;
+var height = 640;
+
+var radius = d3.scaleSqrt()
+    .domain([0, 2000000000])
+    .range([3, 40]);
+
+// var ownCategory = [1, 2, 3, 4, 5, 6, 7, 8];
+// var ownColor = ['#fa0033', '#fa7089', '#fa7089', '#fa7089', '#fe9ea4', '#fdcfd7', '#fdcfd7', '#fff0f3'];
+
+// var color = d3.scaleOrdinal()
+//     .domain(ownCategory)
+//     .range(ownColor);
+
+var projection = d3.geoAlbers();
+
+var path = d3.geoPath()
+              .projection(projection);
+
+var svg = d3.select('#map').append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+d3.json('kushnerNYCpoints-topo.json', function (error, topo) {
+  if (error) throw error;
+
+  // console.log(topo.objects.kushnernycpoints.geometries)
+
+  var kushProperties = topo.objects.kushnernycpoints.geometries;
+
+  kushProperties.forEach(function (d) {
+    d.properties.date = parseDate(d.properties.docdate);
+    d.properties.year = +getYear(d.properties.date);
+  });
+
+  // console.log(kushProperties)
+
+  var nyc = topojson.feature(topo, topo.objects.nycblocks);
+  var points = topojson.feature(topo, topo.objects.kushnernycpoints);
+
+  projection.fitSize([700, 660], points);
+  // can't seem to use .center or .transform to give it more padding on top?
+
+  svg.append('g')
+      .attr('class', 'map')
+    .selectAll('path')
+      .data(nyc.features)
+      .enter()
+      // .each(function(d) { console.log(d) })
+      .append('path')
+      .attr('d', path)
+      .attr('class', 'nyc');
+
+  var data = points.features;
+
+  console.log(data);
+
+  var show = data.filter(function (d) {
+    return d.properties.year === '2007' || d.properties.year === '2013';
+  });
+
+  console.log(show);
+
+  svg.append('g')
+      .attr('class', 'bubbles')
+    .selectAll('circle')
+      .data(data)
+        // .sort(function(a, b) { return b.properties.pricepaid - a.properties.pricepaid; })
+      .enter().append('circle')
+        .attr('transform', function (d) {
+          return 'translate(' + projection(d.geometry.coordinates) + ')';
+        })
+        .attr('r', function (d) {
+          return radius(d.properties.pricepaid);
+        })
+        // .attr('r', 1)
+        .call(d3.attachTooltip)
+        .on('mouseover', function (d) {
+          console.log(d.properties.place);
+          tt.html(d.properties.place + '<br>' + d.properties.partner + '<br>' + '$' + fixBillions(d.properties.pricepaid)).attr('class', 'tooltip');
+        })
+        .on('mouseout', function (d) {
+          tt.attr('class', 'tooltip-hidden;');
+        });
+});
+
+// TK RESPONSIVE MAP STUFF
+
+// d3.select(window).on('resize', resize);
+
+// function resize() {
+
+//     width = parseInt(d3.select('article').style('width'));
+//     width = $(window).width() * .97;
+//     height = width/1.85;
+
+//    projection
+//       .scale([width/3.5])
+//       .translate([width/1,height*1.4]);
+
+//    d3.select("article").attr("width",width).attr("height",height);
+//    d3.select("svg").attr("width",width).attr("height",height);
+
+//    d3.selectAll("path").attr('d', path);
+
+// }
+</script>
+</body>
